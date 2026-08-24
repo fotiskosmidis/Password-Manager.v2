@@ -1,0 +1,1 @@
+να βαλω permission στο φακελο με capabilities να μην μπορουν να κανουν πολλα στο frontend
