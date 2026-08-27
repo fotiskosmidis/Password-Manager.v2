@@ -10,12 +10,15 @@ fn main() {
         println!("cargo:rustc-link-search=native={}", release_dir.display());
         println!("cargo:rustc-link-search=native={}", build_dir.display());
         println!("cargo:rustc-link-lib=dylib=password_manager_backend");
+        println!("cargo:rustc-link-arg=/DELAYLOAD:password_manager_backend.dll");
+        println!("cargo:rustc-link-lib=dylib=delayimp");
     }
 
     #[cfg(not(target_os = "windows"))]
     {
         println!("cargo:rustc-link-search=native={}", build_dir.display());
         println!("cargo:rustc-link-lib=dylib=password_manager_backend");
+        println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN");
         println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN/../../../build");
     }
 

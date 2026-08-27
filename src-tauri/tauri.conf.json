@@ -25,6 +25,18 @@
     "active": true,
     "targets": "all",
     "resources": ["resources/*"],
+    "linux": {
+      "appimage": {
+        "files": {
+          "usr/bin/libpassword_manager_backend.so": "../build/libpassword_manager_backend.so"
+        }
+      },
+      "deb": {
+        "files": {
+          "/usr/bin/libpassword_manager_backend.so": "../build/libpassword_manager_backend.so"
+        }
+      }
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

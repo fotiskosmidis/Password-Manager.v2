@@ -39,19 +39,20 @@ jobs:
           node-version: 22
       - uses: dtolnay/rust-toolchain@stable
       - name: Install native dependencies
-        run: vcpkg install openssl:x64-windows nlohmann-json:x64-windows
+        run: vcpkg install openssl:x64-windows-static nlohmann-json:x64-windows
       - run: npm ci
       - name: Build C++ backend
         shell: pwsh
         run: >-
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
           -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
-          -DVCPKG_TARGET_TRIPLET=x64-windows
+          -DVCPKG_TARGET_TRIPLET=x64-windows-static
+          -DOPENSSL_USE_STATIC_LIBS=TRUE
           ; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cmake --build build --config Release --parallel
       - name: Stage native library
         shell: pwsh
-        run: Copy-Item build/Release/password_manager_backend.dll src-tauri/resources/ -Force
+        run: New-Item -ItemType Directory -Force src-tauri/resources; Copy-Item build/Release/password_manager_backend.dll src-tauri/resources/ -Force
       - name: Build and release Windows app
         uses: tauri-apps/tauri-action@v0
         env:

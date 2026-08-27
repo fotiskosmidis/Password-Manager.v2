@@ -1,6 +1,37 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod cpp_bridge;
 
+#[cfg(target_os = "windows")]
+fn load_native_backend() -> Result<(), String> {
+    use std::ffi::OsStr;
+    use std::os::windows::ffi::OsStrExt;
+    use std::path::PathBuf;
+
+    unsafe extern "system" {
+        fn LoadLibraryW(name: *const u16) -> *mut std::ffi::c_void;
+    }
+
+    let mut candidates = Vec::new();
+    if let Ok(executable) = std::env::current_exe() {
+        if let Some(directory) = executable.parent() {
+            candidates.push(directory.join("password_manager_backend.dll"));
+            candidates.push(directory.join("resources/password_manager_backend.dll"));
+        }
+    }
+    candidates.push(PathBuf::from("build/Release/password_manager_backend.dll"));
+
+    for candidate in candidates {
+        let wide: Vec<u16> = OsStr::new(&candidate).encode_wide().chain(Some(0)).collect();
+        if unsafe { LoadLibraryW(wide.as_ptr()) }.is_null() == false {
+            return Ok(());
+        }
+    }
+    Err("Could not load password_manager_backend.dll".to_string())
+}
+
+#[cfg(not(target_os = "windows"))]
+fn load_native_backend() -> Result<(), String> { Ok(()) }
+
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
@@ -69,6 +100,7 @@ fn update_account(email: &str, account_id: i32, company: &str, password: &str, n
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    load_native_backend().expect("failed to load native password manager backend");
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
