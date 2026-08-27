@@ -11,12 +11,12 @@ permissions:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install native dependencies
-        run: sudo apt-get update && sudo apt-get install -y libssl-dev nlohmann-json3-dev
-      - uses: actions/setup-node@v4
+        run: sudo apt-get update && sudo apt-get install -y libssl-dev nlohmann-json3-dev libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - uses: dtolnay/rust-toolchain@stable
@@ -33,22 +33,27 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - uses: dtolnay/rust-toolchain@stable
       - name: Install native dependencies
-        run: vcpkg install openssl:x64-windows-static nlohmann-json:x64-windows
+        run: vcpkg install openssl:x64-windows-static nlohmann-json:x64-windows-static
       - run: npm ci
       - name: Build C++ backend
         shell: pwsh
-        run: >-
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
-          -DVCPKG_TARGET_TRIPLET=x64-windows-static
-          -DOPENSSL_USE_STATIC_LIBS=TRUE
-          ; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        run: |
+          $toolchain = "C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          if (!(Test-Path $toolchain)) {
+            Write-Error "vcpkg toolchain file was not found at $toolchain"
+            exit 1
+          }
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="$toolchain" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DOPENSSL_USE_STATIC_LIBS=TRUE
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cmake --build build --config Release --parallel
       - name: Stage native library
         shell: pwsh
