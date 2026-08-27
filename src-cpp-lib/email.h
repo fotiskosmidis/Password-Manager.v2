@@ -23,6 +23,7 @@ public:
 
         // getter
         string getEmail() const;
+        vector<Account>& getAccountsArray();
         vector<Account> getAccountsArray() const;
 };
 

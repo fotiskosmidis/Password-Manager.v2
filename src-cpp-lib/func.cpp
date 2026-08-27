@@ -14,6 +14,9 @@
 
 using json = nlohmann::json;
 
+vector<int> usedIds;
+vector<Email> emails;
+
 void loadData()
 {
         const filesystem::path dataPath = dataFilePath();

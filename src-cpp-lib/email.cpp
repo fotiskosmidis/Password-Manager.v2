@@ -30,6 +30,11 @@ string Email::getEmail() const
         return email;
 }
 
+vector<Account>& Email::getAccountsArray()
+{
+        return accounts;
+}
+
 vector<Account> Email::getAccountsArray() const
 {
         return accounts;
